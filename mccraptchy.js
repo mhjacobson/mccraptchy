@@ -42,15 +42,17 @@ function purgeCrap() {
 
     for (anchor of document.getElementsByTagName("a")) {
         const href = anchor.href;
-        const url = new URL(href);
-        const lastComponent = url.pathname.substring(url.pathname.lastIndexOf("/"));
+        try {
+            const url = new URL(href);
+            const lastComponent = url.pathname.substring(url.pathname.lastIndexOf("/"));
 
-        if (lastComponent.startsWith("/article")) {
-            url.hostname = url.hostname.replace("www", "amp");
-            url.pathname = lastComponent;
-            url.hash = "";
-            anchor.href = url.href;
-        }
+            if (lastComponent.startsWith("/article")) {
+                url.hostname = url.hostname.replace("www", "amp");
+                url.pathname = lastComponent;
+                url.hash = "";
+                anchor.href = url.href;
+            }
+        } catch (e) {}
     }
 }
 
