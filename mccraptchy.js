@@ -3,7 +3,26 @@
 // @description Remove crap from the McClatchy newspaper web sites.
 // @match       *://*.newsobserver.com/*
 // @match       *://*.heraldsun.com/*
+// @match       *://*.charlotteobserver.com/*
 // ==/UserScript==
+
+const href = window.location.href;
+if (href.startsWith("https://account.newsobserver.com/paywall/stop?resume=")) {
+    const schemeAndDomain = href.substring(0, href.indexOf("/", 8));
+    const ampSchemeAndDomain = schemeAndDomain.replace("account", "amp");
+    const articleID = href.substring(href.lastIndexOf("=") + 1);
+    window.location.href = ampSchemeAndDomain + "/article" + articleID + ".html";
+}
+// https://account.newsobserver.com/paywall/stop?resume=267522628
+// https://amp.newsobserver.com/article267522628.html
+
+// Kill new AMP paywall
+for (element of document.querySelectorAll("[subscriptions-section=content]")) {
+    element.removeAttribute("subscriptions-section");
+}
+const style = document.createElement("style");
+style.textContent = "amp-subscriptions-dialog { visibility: hidden; }";
+document.head.appendChild(style);
 
 const existingOnLoad = window.onload;
 window.onload = function() {
@@ -23,13 +42,14 @@ function purgeCrap() {
 
     for (anchor of document.getElementsByTagName("a")) {
         const href = anchor.href;
-        const lastComponent = href.substring(href.lastIndexOf("/"));
+        const url = new URL(href);
+        const lastComponent = url.pathname.substring(url.pathname.lastIndexOf("/"));
 
         if (lastComponent.startsWith("/article")) {
-            const schemeAndDomain = href.substring(0, href.indexOf("/", 8));
-            const ampSchemeAndDomain = schemeAndDomain.replace("www", "amp");
-            const newHREF = ampSchemeAndDomain + lastComponent;
-            anchor.href = newHREF;
+            url.hostname = url.hostname.replace("www", "amp");
+            url.pathname = lastComponent;
+            url.hash = "";
+            anchor.href = url.href;
         }
     }
 }
